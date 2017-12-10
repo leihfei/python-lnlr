@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import requests
+import urllib3
 from PIL import Image
 
 from recognition_title.login_use_baidu import BaiDu
-from recognition_title.login_use_google import Google
 
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 __author__ = "雷洪飞"
 
 """
@@ -51,7 +52,7 @@ if __name__ == "__main__":
     except Exception:
         print("出现识别异常，请重试!")
 
-    # print("调用google tesseract结果")
-    # google = Google()
-    # result_g = google.get_text(image_title)
-    # print(result_g)
+        # print("调用google tesseract结果")
+        # google = Google()
+        # result_g = google.get_text(image_title)
+        # print(result_g)
