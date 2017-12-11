@@ -44,6 +44,6 @@ if __name__ == "__main__":
     # 获取图片
     baidu = BaiDu()
     # 得到识别结果
-    result = baidu.get_result("images/code.png")
+    result = baidu.get_result("../images/code.png")
     # 输出识别结果
     print(result['words_result'][0]['words'])
