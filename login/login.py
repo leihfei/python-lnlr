@@ -4,6 +4,7 @@ import requests
 import urllib3
 from PIL import Image
 
+from recoginition_container.get_container import RecoginitionContainer
 from recognition_title.login_use_baidu import BaiDu
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -40,8 +41,8 @@ def get_picture(get_pic_url, img_code):
 
 if __name__ == "__main__":
     url = "https://kyfw.12306.cn/passport/captcha/captcha-image?login_site=E&module=login&rand=sjrand&0.6523880813900003"
-    image_title = "images/temp_title.png"
-    image_code = "images/code.png"
+    image_title = "../images/temp_title.png"
+    image_code = "../images/code.png"
     get_picture(url, image_code)
     get_title_pic(image_code, image_title)
     try:
@@ -52,7 +53,7 @@ if __name__ == "__main__":
     except Exception:
         print("出现识别异常，请重试!")
 
-        # print("调用google tesseract结果")
-        # google = Google()
-        # result_g = google.get_text(image_title)
-        # print(result_g)
+    print("开始识别图片内容")
+    c = RecoginitionContainer("../images")
+    list = c.get_text(image_code)
+    print(list)

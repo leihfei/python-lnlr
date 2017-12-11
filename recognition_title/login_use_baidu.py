@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+
+from aip import AipOcr
+
 __author__ = "雷洪飞"
 
 """
  利用百度图像识别api做文字识别，目的是为了做12306的图片校验。
 """
-from aip import AipOcr
 
 # 定义常量
 APP_ID = '10508877'
@@ -42,6 +44,6 @@ if __name__ == "__main__":
     # 获取图片
     baidu = BaiDu()
     # 得到识别结果
-    result = baidu.get_result("image/temp_title.png")
+    result = baidu.get_result("images/code.png")
     # 输出识别结果
     print(result['words_result'][0]['words'])
