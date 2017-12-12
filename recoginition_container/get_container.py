@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import requests
 import urllib3
-from PIL import Image
+from PIL import Image, ImageFilter, ImageEnhance
 from bs4 import BeautifulSoup
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -48,7 +48,21 @@ class RecoginitionContainer(object):
             for link in re:
                 li.append(link.get_text())
                 # print(link.get_text())
-            return li
+            # 再次获取图中动物可能是
+            te = bs.find_all("ul", class_="shituplant-tag")
+            for l in te:
+                # 得到有可能包含的数据
+                for child in l.children:
+                    try:
+                        li.append(child.get_text())
+                    except:
+                        pass
+            # 再次获取相似图片，其中在有一个图片描述，进行获取就知道,重新掉了一个接口
+            # pc_search 替换成similar在搜索一次
+            once_url = query_url.replace("pc_search","similar")
+            resp = requests.get(once_url, headers=slef.headers, verify=False)
+            print(resp.status_code)
+            return "|".join(x for x in li)
 
     def get_pic_content(slef, img_url):
         box = (0, 41, 295, 186)
@@ -56,7 +70,10 @@ class RecoginitionContainer(object):
 
     def get_text(slef, img_url):
         li = list()
+        ImageEnhance.Contrast(Image.open(img_url)).enhance(1.3).save(img_url)
         imgs = Image.open(img_url)
+        imgs.filter(ImageFilter.BLUR).filter(ImageFilter.MaxFilter(23))
+        imgs.convert('L')
         x_width, y_heigth = imgs.size
         # 得到每一张图片应该的大小
         width = x_width / 4
@@ -66,7 +83,7 @@ class RecoginitionContainer(object):
                 if x_ == 0:
                     box = (y_ * width, x_ * heigth + 21, (y_ + 1) * width, (x_ + 1) * heigth + 21)
                 else:
-                    box = (y_ * width, x_ * heigth + 21, (y_ + 1) * width, (x_ + 1) * heigth )
+                    box = (y_ * width, x_ * heigth + 21, (y_ + 1) * width, (x_ + 1) * heigth)
                     # 得到查询地址
                 query_url = slef.__upload_pic__(imgs.crop(box), str(x_) + str(y_), slef.url)
                 # 进行查询，返回结果
@@ -75,6 +92,7 @@ class RecoginitionContainer(object):
                 print("识别结果:")
                 print(text)
         return li
+
 
 if __name__ == "__main__":
     img_url = "../images/code.png"
