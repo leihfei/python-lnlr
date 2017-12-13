@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import os
+
 import requests
 import urllib3
 from PIL import Image
@@ -41,7 +43,19 @@ def get_picture(get_pic_url, img_code):
         get_picture(get_pic_url, img_code)
 
 
+def del_file(path):
+    for i in os.listdir(path):
+        # 取文件绝对路径
+        path_file = os.path.join(path, i)
+        if os.path.isfile(path_file):
+            os.remove(path_file)
+        else:
+            del_file(path_file)
+
+
 def login_get_data(url, image_code, image_title):
+    # 删除images所有文件
+    del_file("../images")
     get_picture(url, image_code)
     get_title_pic(image_code, image_title)
     try:
@@ -80,6 +94,7 @@ def login_get_data(url, image_code, image_title):
                     print("识别出一个坐标点")
                     point.append(po)
     # 打印出图片的内容
+    print()
     print(point)
     return point
 
@@ -98,7 +113,9 @@ def check_captcha(point):
     print(response.text)
     if response.status_code != 200:
         return False
-    if 4 == response.json()['result_code']:
+    code = response.json()['result_code']
+    # 取出验证结果，4：成功  5：验证失败  7：过期
+    if str(code) == '4':
         return True
     else:
         return False
@@ -115,6 +132,21 @@ def login():
         check = check_captcha(point)
         if check is True:
             print("验证码验证成功......")
+            loginUrl = "https://kyfw.12306.cn/passport/web/login"
+            data = {
+                'username': '18788638847',
+                'password': "Diamond7nuo",
+                'appid': 'otn'
+            }
+            result = req.post(url=loginUrl, data=data, headers=headers, verify=False)
+            mes = result.json()['result_message']
+            # 结果的编码方式是Unicode编码，所以对比的时候字符串前面加u,或者mes.encode('utf-8') == '登录成功'进行判断，否则报错
+            if mes == u'登录成功':
+                print
+                '恭喜你，登录成功，可以购票!'
+            else:
+                print
+                '对不起，登录失败，请检查登录信息!'
         else:
             print("验证码验证失败，正在重新尝试....")
             login()
