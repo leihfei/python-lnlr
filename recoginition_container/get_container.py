@@ -59,9 +59,13 @@ class RecoginitionContainer(object):
                         pass
             # 再次获取相似图片，其中在有一个图片描述，进行获取就知道,重新掉了一个接口
             # pc_search 替换成similar在搜索一次
-            once_url = query_url.replace("pc_search","similar")
-            resp = requests.get(once_url, headers=slef.headers, verify=False)
-            print(resp.status_code)
+            if len(li) == 0:
+                once_url = query_url.replace("pc_search", "similar")
+                resp = requests.get(once_url, headers=slef.headers, verify=False)
+                js = resp.json()
+                #print("查找相似图片")
+                for fromTitle in js['data']:
+                    li.append(fromTitle['fromPageTitle'])
             return "|".join(x for x in li)
 
     def get_pic_content(slef, img_url):
@@ -80,17 +84,25 @@ class RecoginitionContainer(object):
         heigth = y_heigth / 2
         for x_ in range(0, 2):
             for y_ in range(0, 4):
+                left = y_ * width
+                right = (y_ + 1) * width
+                # 得到图片位置
+                index = (x_ * 4) + y_
                 if x_ == 0:
-                    box = (y_ * width, x_ * heigth + 21, (y_ + 1) * width, (x_ + 1) * heigth + 21)
+                    box = (left, x_ * heigth + 21, right, (x_ + 1) * heigth + 21)
                 else:
                     box = (y_ * width, x_ * heigth + 21, (y_ + 1) * width, (x_ + 1) * heigth)
                     # 得到查询地址
                 query_url = slef.__upload_pic__(imgs.crop(box), str(x_) + str(y_), slef.url)
                 # 进行查询，返回结果
                 text = slef.__get_query_content__(query_url)
-                li.append(text)
-                print("识别结果:")
-                print(text)
+                # 计算坐标
+                # 由于12306官方验证码是验证正确验证码的坐标范围,我们取每个验证码中点的坐标(大约值)
+                yanSol = ['35,35', '105,35', '175,35', '245,35', '35,105', '105,105', '175,105', '245,105']
+                # 将坐标保存
+                li.append({yanSol[index]: text})
+                # print("识别结果:")
+                # print(text)
         return li
 
 
