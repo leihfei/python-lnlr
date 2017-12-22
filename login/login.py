@@ -21,11 +21,14 @@ headers = {
 req = requests.session()
 
 
-def get_title_pic(img_url, img_title):
+def get_title_pic(img_url, img_title, time):
     # 读取图片
+    if time == 1:
+        box = (116, 0, 175, 30)
+    else:
+        box = (175, 0, 238, 30)
     image = Image.open(img_url)
-    # image.convert("L")
-    box = (116, 0, 238, 30)
+    image.convert("L")
     t = image.crop(box)
     t.save(img_title)
 
@@ -53,48 +56,73 @@ def del_file(path):
             del_file(path_file)
 
 
+def get_title_context(image_code, image_title):
+    """
+    两次识别文字标题
+    :param image_code:
+    :param image_title:
+    :return:
+    """
+    # 标题内容
+    result = list()
+    print("调用百度API进行标题识别:")
+    for index in range(1, 3):
+        get_title_pic(image_code, image_title, index)
+        try:
+            baidu = BaiDu()
+            res = baidu.get_result(image_title)
+            print("标题识别返回原始数据")
+            print(res)
+            if len(res['words_result']) != 0:
+                result.append(res['words_result'][0]['words'])
+        except Exception:
+            print("出现识别异常，正在重试!")
+            get_title_context(image_code, image_title)
+    return result
+
+
 def login_get_data(url, image_code, image_title):
     # 删除images所有文件
     del_file("../images")
     get_picture(url, image_code)
-    get_title_pic(image_code, image_title)
-    try:
-        print("调用百度API结果")
-        baidu = BaiDu()
-        result = baidu.get_result(image_title)
-        print(result)
-    except Exception:
-        print("出现识别异常，请重试!")
 
-    if len(result['words_result']) == 0:
+    # 由于验证码难度升级，成了两个东西，比如：本子，订书机这种形式，那么
+    # 我需要进行两次分割，并进行循环判断才可以
+    point = list()
+    result = get_title_context(image_code, image_title)
+    if len(result) == 0:
         print("识别标题失败,正在重新尝试....")
         login_get_data(url, image_code, image_title)
+    else:
+        print("标题识别结果：")
+        print(result)
+
+        # 对图片内容进行识别
     print("开始对图片内容进行识别....")
     c = RecoginitionContainer("../images")
     # 得到了坐标和识别出来的内容，或者相似图片的标题
     lists = c.get_text(image_code)
-    point = list()
     # 进行内容比对
     print("正在进行内容比对......")
     for li in lists:
         # 得到每一个坐标点和内容
-        title_text = result['words_result'][0]['words']
-        for po, value in li.items():
-            if title_text in value:
-                # 判断当前坐标点是否存在
-                if po not in point:
-                    print("识别出一个坐标点")
-                    point.append(po)
-    # 再次对标题进行分割
-    for tx in title_text:
-        for po, value in li.items():
-            if tx in value:
-                # 判断当前坐标点是否存在
-                if po not in point:
-                    print("识别出一个坐标点")
-                    point.append(po)
+        # 循环标题，进行比对
+        for title_text in result:
+            for po, value in li.items():
+                if title_text in value:
+                    # 判断当前坐标点是否存在
+                    if po not in point:
+                        print("识别出一个坐标点")
+                        point.append(po)
+            # 再次对标题进行分割
+            for tx in title_text:
+                for po, value in li.items():
+                    if tx in value:
+                        # 判断当前坐标点是否存在
+                        if po not in point:
+                            print("识别出一个坐标点")
+                            point.append(po)
     # 打印出图片的内容
-    print()
     print(point)
     return point
 
@@ -134,19 +162,13 @@ def login():
             print("验证码验证成功......")
             loginUrl = "https://kyfw.12306.cn/passport/web/login"
             data = {
-                'username': '18788638847',
-                'password': "Diamond7nuo",
+                'username': 'account',
+                'password': "password",
                 'appid': 'otn'
             }
             result = req.post(url=loginUrl, data=data, headers=headers, verify=False)
-            mes = result.json()['result_message']
-            # 结果的编码方式是Unicode编码，所以对比的时候字符串前面加u,或者mes.encode('utf-8') == '登录成功'进行判断，否则报错
-            if mes == u'登录成功':
-                print
-                '恭喜你，登录成功，可以购票!'
-            else:
-                print
-                '对不起，登录失败，请检查登录信息!'
+            print("登录返回结果:")
+            print(result.text)
         else:
             print("验证码验证失败，正在重新尝试....")
             login()
