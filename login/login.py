@@ -135,7 +135,7 @@ def check_captcha(point):
         "login_site": "E",
         "rand": "sjrand"
     }
-    # print(data)
+    # print(分析js文件)
     response = req.post(check_url, data=data,
                         headers=headers, verify=False)
     print(response.text)

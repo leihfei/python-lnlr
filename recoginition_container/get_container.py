@@ -64,7 +64,7 @@ class RecoginitionContainer(object):
                 resp = requests.get(once_url, headers=slef.headers, verify=False)
                 js = resp.json()
                 #print("查找相似图片")
-                for fromTitle in js['data']:
+                for fromTitle in js['分析js文件']:
                     li.append(fromTitle['fromPageTitle'])
             return "|".join(x for x in li)
 

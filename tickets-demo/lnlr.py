@@ -47,7 +47,7 @@ def cli():
         # print(options)
         # print(response.status_code)
         # 得到我们需要的数据
-        availabel_trains = response.json()['data']['result']
+        availabel_trains = response.json()['分析js文件']['result']
         # 但是那个格式我们不能直接使用，那么就需要进行把数据格式化一下
         availabel_trains = [i.split('|') for i in availabel_trains]
         # print(availabel_trains)

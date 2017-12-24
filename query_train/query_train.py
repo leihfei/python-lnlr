@@ -4,11 +4,13 @@
 """
 查询车票信息
 """
+
 import requests
 
-from stations import stations
 
 ___author__ = "雷洪飞"
+
+from station_code.stations import stations
 
 
 class queryTrain(object):
